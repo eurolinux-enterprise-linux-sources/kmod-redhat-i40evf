@@ -1,0 +1,17 @@
+This kmod is built with retpoline support (using inline thunks), however, kernel
+detects presence of retpolines in kmods based on presence of the respective
+modinfo flag, added by modpost script. As kmod is built against GA kernel whose
+modpost script lacks the appropriate code, let's add the flag manually in order
+to avoid bogus complaints from newer kernels.
+Index: src/drivers/net/ethernet/intel/i40evf/i40evf_main.c
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-03-02 08:32:54.837576113 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-03-15 20:50:30.363156136 +0100
+@@ -78,6 +78,7 @@
+ MODULE_DESCRIPTION("Intel(R) XL710 X710 Virtual Function Network Driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
++MODULE_INFO(retpoline, "Y");
+ 
+ static struct workqueue_struct *i40evf_wq;
+ 

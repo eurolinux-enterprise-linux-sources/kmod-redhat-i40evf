@@ -1,0 +1,31 @@
+New code for page fault handling introduced in commit efc1c93b7b3e
+"[netdrv] i40e/i40evf: Update code to better handle incrementing page count"
+(upstream 1793668c3b8c) relies on recenetly introduced __page_frag_cache_drain
+function (initially introduced as __page_frag_drain in 8cbd9354f14f "[mm] add
+support for releasing multiple instances of a page", upstream 44fdffd70504, and
+then updated in 4f21fc318c16 "[mm] rename __page_frag functions to
+__page_frag_cache, drop order from drain", upstream 2976db801853), so it's
+re-implemented in backport compat header using page_ref_sub_and_test and
+__free_pages.
+Index: src/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h	2018-03-01 13:52:40.247206589 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h	2018-03-02 08:32:28.857861042 +0100
+@@ -1,6 +1,17 @@
+ #ifndef I40EVF_BACKPORT_COMPAT_H
+ #define I40EVF_BACKPORT_COMPAT_H
+ 
++static inline void __page_frag_cache_drain(struct page *page, unsigned int count)
++{
++	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
++
++	if (count > 0) {
++		VM_BUG_ON_PAGE(page_ref_sub_and_test(page, count - 1), page);
++
++		__free_pages(page, compound_order(page));
++	}
++}
++
+ static inline dma_addr_t dma_map_page_attrs(struct device *dev,
+ 					    struct page *page,
+ 					    size_t offset, size_t size,

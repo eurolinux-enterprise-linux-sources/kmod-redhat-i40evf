@@ -1,0 +1,54 @@
+Provide implementations of dma_map_page_attrs and dma_unmap_page_attrs from
+7.5's include/linux/dma-mapping.h.
+Index: src/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h	2018-02-27 18:27:39.893459214 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40e_backport_compat.h	2018-02-27 18:28:29.908933816 +0100
+@@ -1,3 +1,34 @@
+ #ifndef I40EVF_BACKPORT_COMPAT_H
+ #define I40EVF_BACKPORT_COMPAT_H
++
++static inline dma_addr_t dma_map_page_attrs(struct device *dev,
++					    struct page *page,
++					    size_t offset, size_t size,
++					    enum dma_data_direction dir,
++					    struct dma_attrs *attrs)
++{
++	struct dma_map_ops *ops = get_dma_ops(dev);
++	dma_addr_t addr;
++
++	kmemcheck_mark_initialized(page_address(page) + offset, size);
++	BUG_ON(!valid_dma_direction(dir));
++	addr = ops->map_page(dev, page, offset, size, dir, attrs);
++	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
++
++	return addr;
++}
++
++static inline void dma_unmap_page_attrs(struct device *dev,
++					dma_addr_t addr, size_t size,
++					enum dma_data_direction dir,
++					struct dma_attrs *attrs)
++{
++	struct dma_map_ops *ops = get_dma_ops(dev);
++
++	BUG_ON(!valid_dma_direction(dir));
++	if (ops->unmap_page)
++		ops->unmap_page(dev, addr, size, dir, attrs);
++	debug_dma_unmap_page(dev, addr, size, dir, false);
++}
++
+ #endif /* I40EVF_BACKPORT_COMPAT_H */
+Index: src/drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40e_txrx.c	2018-02-27 16:16:09.552096211 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40e_txrx.c	2018-02-27 18:28:58.244636160 +0100
+@@ -31,6 +31,8 @@
+ #include "i40e_trace.h"
+ #include "i40e_prototype.h"
+ 
++#include "i40e_backport_compat.h"
++
+ static inline __le64 build_ctob(u32 td_cmd, u32 td_offset, unsigned int size,
+ 				u32 td_tag)
+ {

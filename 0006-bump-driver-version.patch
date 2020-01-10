@@ -1,0 +1,15 @@
+Provide "_dup7.4" suffix to the driver version in order to differentiate it
+from the inbox driver.
+Index: src/drivers/net/ethernet/intel/i40evf/i40evf_main.c
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-02-27 18:43:25.698521323 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-02-27 18:45:06.292463555 +0100
+@@ -42,7 +42,7 @@
+ static const char i40evf_driver_string[] =
+ 	"Intel(R) 40-10 Gigabit Virtual Function Network Driver";
+ 
+-#define DRV_KERN "-k"
++#define DRV_KERN "-k_dup7.4"
+ 
+ #define DRV_VERSION_MAJOR 3
+ #define DRV_VERSION_MINOR 0

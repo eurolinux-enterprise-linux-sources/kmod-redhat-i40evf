@@ -1,0 +1,15 @@
+Revert 515e886a2e5d "[net] add a postfix to old ndo_change_mtu", as network
+stack in 7.4 uses ndo_change_mtu method.
+Index: src/drivers/net/ethernet/intel/i40evf/i40evf_main.c
+===================================================================
+--- src.orig/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-02-27 18:36:37.185815121 +0100
++++ src/drivers/net/ethernet/intel/i40evf/i40evf_main.c	2018-02-27 18:43:25.698521323 +0100
+@@ -2457,7 +2457,7 @@
+ 	.ndo_set_rx_mode	= i40evf_set_rx_mode,
+ 	.ndo_validate_addr	= eth_validate_addr,
+ 	.ndo_set_mac_address	= i40evf_set_mac,
+-	.ndo_change_mtu_rh74	= i40evf_change_mtu,
++	.ndo_change_mtu		= i40evf_change_mtu,
+ 	.ndo_tx_timeout		= i40evf_tx_timeout,
+ 	.ndo_vlan_rx_add_vid	= i40evf_vlan_rx_add_vid,
+ 	.ndo_vlan_rx_kill_vid	= i40evf_vlan_rx_kill_vid,
